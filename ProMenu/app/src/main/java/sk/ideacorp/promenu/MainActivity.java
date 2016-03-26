@@ -1,10 +1,15 @@
 package sk.ideacorp.promenu;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.TranslateAnimation;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 public class MainActivity extends AppCompatActivity
@@ -28,6 +34,24 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //Loader loader = Loader((Context)MainActivity.this);
+        //loader.show();
+
+        ImageView mapImageView = (ImageView) findViewById(R.id.mapIcon);
+
+        mapImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent ev) {
+                if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    Intent maps_intent = new Intent(MainActivity.this, MapsActivity.class);
+
+                    startActivity(maps_intent);
+                }
+
+                return true;
+            }
+        });
 
         //
         // Otvori Lave menu / Posunie content
@@ -106,6 +130,20 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+
+        if (id == R.id.nav_about) {
+            Intent about_intent = new Intent(MainActivity.this, AboutActivity.class);
+
+            startActivity(about_intent);
+        } else if(id == R.id.nav_blog) {
+            Intent blog_intent = new Intent(MainActivity.this, BlogActivity.class);
+
+            startActivity(blog_intent);
+        } else if(id == R.id.nav_cooperation) {
+            Intent blog_intent = new Intent(MainActivity.this, CooperationActivity.class);
+
+            startActivity(blog_intent);
+        }
 
         /*if (id == R.id.nav_camera) {
             // Handle the camera action
