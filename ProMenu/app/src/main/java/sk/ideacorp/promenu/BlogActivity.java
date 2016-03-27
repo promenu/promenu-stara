@@ -30,15 +30,7 @@ public class BlogActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent ev) {
                 if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    if(BlogActivity.this.url.equals(BlogActivity.this.browser.get_url())) {
-                        BlogActivity.this.onBackPressed();
-                    } else {
-                        //ProgressBar progress_bar = (ProgressBar)findViewById(R.id.blogProgressBar);
-                        //progress_bar.setVisibility(View.VISIBLE);
-
-                        BlogActivity.this.browser.set_url(BlogActivity.this.url);
-                        BlogActivity.this.browser.load();
-                    }
+                    BlogActivity.this.onBackPressed();
                 }
 
                 return true;
@@ -51,8 +43,6 @@ public class BlogActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent ev) {
                 if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
                     BlogActivity.this.onBackPressed();
-
-                    return true;
                 }
 
                 return true;
@@ -62,6 +52,16 @@ public class BlogActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+
+        if(BlogActivity.this.url.equals(BlogActivity.this.browser.get_url())) {
+            super.onBackPressed();
+        } else {
+            //ProgressBar progress_bar = (ProgressBar)findViewById(R.id.blogProgressBar);
+            //progress_bar.setVisibility(View.VISIBLE);
+
+            BlogActivity.this.browser.set_url(BlogActivity.this.url);
+            BlogActivity.this.browser.load();
+        }
+
     }
 }
