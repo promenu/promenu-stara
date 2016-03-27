@@ -169,6 +169,16 @@ public class Browser {
         }
     }
 
+    public void setHTMLWithAssets(String html) {
+
+        this.browser.loadDataWithBaseURL("file:///android_asset/", html, "text/html", "utf-8", null);
+
+        if(Browser.this.progress_bar != null)
+        {
+            Browser.this.progress_bar.setVisibility(View.GONE);
+        }
+    }
+
     public void clear()
     {
         this.browser.clearCache(true);

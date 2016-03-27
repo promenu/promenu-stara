@@ -1,6 +1,7 @@
 package sk.ideacorp.promenu;
 
 import android.content.Intent;
+import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -49,14 +50,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        Bundle bundle = getIntent().getExtras();
-        this.latitude = bundle.getDouble("latitude");
-        this.longitude = bundle.getDouble("longitude");
+        //Bundle bundle = getIntent().getExtras();
+        //this.latitude = bundle.getDouble("latitude");
+        //this.longitude = bundle.getDouble("longitude");
 
         Toolbar about_toolbar = (Toolbar)findViewById(R.id.toolbar);
         about_toolbar.setOnTouchListener(new View.OnTouchListener() {
@@ -99,7 +101,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if(this.latitude > 0 && this.longitude > 0) {
+        /*GPSTracker tracker = new GPSTracker(this);
+
+        if (tracker.canGetLocation()) {
+            this.latitude = tracker.getLatitude();
+            this.longitude = tracker.getLongitude();
+
             // Add a marker in Sydney and move the camera
             LatLng my_position = new LatLng(this.latitude, this.longitude);
 
@@ -113,7 +120,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng slovakia = new LatLng(48.708746, 19.507936);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(slovakia));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(6.0f));
-        }
+        }*/
+
+        LatLng slovakia = new LatLng(48.708746, 19.507936);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(slovakia));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(6.0f));
+        mMap.setMyLocationEnabled(true);
+        mMap.setOnMyLocationChangeListener(this.myLocationChangeListener);
 
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(MapsActivity.this.url, new AsyncHttpResponseHandler() {
@@ -188,6 +201,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //mMap.addMarker(new MarkerOptions().position(new LatLng(48.681651, 17.366871)).title("Indore"));
     }
+
+    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
+        @Override
+        public void onMyLocationChange(Location location) {
+            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+
+            //mMap.addMarker(new MarkerOptions().position(loc).title("Ja").snippet("Tu sa nachádzam")
+                    //.icon(BitmapDescriptorFactory.fromResource(R.drawable.my_marker)));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f));
+
+            if(mMap != null){
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 16.0f));
+            }
+        }
+    };
 
     @Override
     public void onBackPressed() {

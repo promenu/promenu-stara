@@ -1,7 +1,15 @@
 package sk.ideacorp.promenu;
 
+import android.app.Activity;
+
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -9,6 +17,43 @@ import cz.msebera.android.httpclient.Header;
  * Created by Lukas Knotek on 26. 3. 2016.
  */
 public class Restaurants {
+
+    private Activity activity;
+
+    public Restaurants(Activity activity)
+    {
+        this.activity = activity;
+    }
+
+    public String getHeader()
+    {
+        String head = "<!DOCTYPE HTML><html dir=\"ltr\" lang=\"sk-SK\"><head><meta charset=\"UTF-8\">";
+        head += "<meta charset=\"utf-8\"><title>ProMenu.sk</title><meta name=\"author\" content=\"ProMenu.sk\" />";
+        head += "<meta name=\"viewport\" content=\"width=device-width\"><meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">";
+        head += "<link href=\"styles.css\" rel=\"stylesheet\" type=\"text/css\">";
+        head += "<script src=\"scripts.js\"></script>";
+
+        head += "</head><body><div class=\"mobile-wrapper\">";
+
+        return head;
+    }
+
+    public String getBody(String response)
+    {
+        String html = "";
+
+
+
+        return html;
+    }
+
+    public String getFooter()
+    {
+
+        String footer = "</body></html>";
+
+        return footer;
+    }
 
     private void loadData()
     {
