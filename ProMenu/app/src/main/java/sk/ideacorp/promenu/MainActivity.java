@@ -1,14 +1,20 @@
 package sk.ideacorp.promenu;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -22,11 +28,29 @@ import android.view.MenuItem;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private float lastTranslate = 0.0f;
+
+    private double latitude = 0;
+
+    private double longitude = 0;
+
+    private LocationManager locationManager;
+
+    private LocationListener locationListener;
+
+    private Boolean is_located = false;
+
+    private String provider;
+
+    private String mobile_id = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,22 +61,66 @@ public class MainActivity extends AppCompatActivity
 
         //Loader loader = Loader((Context)MainActivity.this);
         //loader.show();
+/*
+        this.locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 
-        ImageView mapImageView = (ImageView) findViewById(R.id.mapIcon);
-
-        mapImageView.setOnTouchListener(new View.OnTouchListener() {
+        this.locationListener = new LocationListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent ev) {
-                if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    Intent maps_intent = new Intent(MainActivity.this, MapsActivity.class);
+            public void onStatusChanged(String provider, int status,
+                                        Bundle extras) {
+                MessageBox messageBox = new MessageBox(MainActivity.this, "Info", "StatusChanged");
+                messageBox.Show();
+            }
 
-                    startActivity(maps_intent);
+            @Override
+            public void onProviderEnabled(String provider) {
+                MessageBox messageBox = new MessageBox(MainActivity.this, "Info", "ProviderEnabled");
+                messageBox.Show();
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+                MessageBox messageBox = new MessageBox(MainActivity.this, "Hľadaj podľa polohy", "Zapni GPS a hľadaj reštaurácie v okolí alebo pokračuj stlačením ok bez lokácie.");
+                messageBox.ShowSettings();
+            }
+
+            @Override
+            public void onLocationChanged(Location location) {
+                if(MainActivity.this.is_located == false) {
+                    MainActivity.this.latitude = location.getLatitude();
+
+                    MainActivity.this.longitude = location.getLongitude();
                 }
 
-                return true;
-            }
-        });
+                MainActivity.this.is_located = true;
 
+                MessageBox messageBox = new MessageBox(MainActivity.this, "My Location", String.valueOf(MainActivity.this.latitude) + ", " + String.valueOf(MainActivity.this.longitude));
+                messageBox.Show();
+            }
+        };
+
+        Criteria criteria = new Criteria();
+        this.provider = this.locationManager.getBestProvider(criteria, false);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Nemáte oprávnenie na túto akciu");
+            messageBox.Show();
+
+            return;
+        }
+
+        this.locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10, this.locationListener);
+        //Location location = this.locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location location = this.locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+*/
         //
         // Otvori Lave menu / Posunie content
         //
@@ -91,6 +159,23 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        ImageView mapImageView = (ImageView) findViewById(R.id.mapIcon);
+
+        mapImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent ev) {
+                if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    Intent maps_intent = new Intent(MainActivity.this, MapsActivity.class);
+                    maps_intent.putExtra("latitude", MainActivity.this.latitude);
+                    maps_intent.putExtra("longitude", MainActivity.this.longitude);
+
+                    startActivity(maps_intent);
+                }
+
+                return true;
+            }
+        });
     }
 
     @Override
