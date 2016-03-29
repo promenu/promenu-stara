@@ -38,6 +38,20 @@ public class Restaurants {
         return head;
     }
 
+    public String getHeader2()
+    {
+        String head = "<!DOCTYPE HTML><html dir=\"ltr\" lang=\"sk-SK\"><head><meta charset=\"UTF-8\">";
+        head += "<meta charset=\"utf-8\"><title>ProMenu.sk</title><meta name=\"author\" content=\"ProMenu.sk\" />";
+        head += "<meta name=\"viewport\" content=\"width=device-width\"><meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">";
+        head += "<link href=\"fancybox.css\" rel=\"stylesheet\" type=\"text/css\">";
+        head += "<link href=\"styles.css\" rel=\"stylesheet\" type=\"text/css\">";
+        head += "<script src=\"detail.js\"></script>";
+
+        head += "</head><body><div class=\"mobile-wrapper\">";
+
+        return head;
+    }
+
     public String getBody(String response)
     {
         String html = "";
@@ -50,7 +64,7 @@ public class Restaurants {
     public String getFooter()
     {
 
-        String footer = "</body></html>";
+        String footer = "</div></body></html>";
 
         return footer;
     }

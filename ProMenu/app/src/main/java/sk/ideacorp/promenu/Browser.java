@@ -33,9 +33,13 @@ public class Browser {
     {
         this.browser = browser;
 
+        this.activity = activity;
+
+        this.progress_bar = progress_bar;
+
         this.browser.getSettings().setJavaScriptEnabled(true);
         this.browser.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        //this.browser.addJavascriptInterface(new JavaScriptInterface(this.activity), "JSInterface");
+        this.browser.addJavascriptInterface(new JavaScriptInterface(this.activity), "JSInterface");
 
         /*this.browser.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -50,10 +54,10 @@ public class Browser {
                 return true;
             }
         });*/
+    }
 
-        this.activity = activity;
-
-        this.progress_bar = progress_bar;
+    public boolean post(Runnable action) {
+        return this.browser.post(action);
     }
 
     public void set_url(String url)

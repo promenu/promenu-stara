@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 public class BlogActivity extends AppCompatActivity {
 
@@ -21,7 +22,7 @@ public class BlogActivity extends AppCompatActivity {
 
         WebView web_view = (WebView) findViewById(R.id.webViewMain);
 
-        this.browser = new Browser(web_view, this, null);
+        this.browser = new Browser(web_view, this, (ProgressBar)findViewById(R.id.mainProgressBar));
         this.browser.set_url(this.url);
         this.browser.load();
 
@@ -56,8 +57,8 @@ public class BlogActivity extends AppCompatActivity {
         if(BlogActivity.this.url.equals(BlogActivity.this.browser.get_url())) {
             super.onBackPressed();
         } else {
-            //ProgressBar progress_bar = (ProgressBar)findViewById(R.id.blogProgressBar);
-            //progress_bar.setVisibility(View.VISIBLE);
+            ProgressBar progress_bar = (ProgressBar)findViewById(R.id.mainProgressBar);
+            progress_bar.setVisibility(View.VISIBLE);
 
             BlogActivity.this.browser.set_url(BlogActivity.this.url);
             BlogActivity.this.browser.load();

@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 public class CooperationActivity extends AppCompatActivity {
 
@@ -21,7 +22,7 @@ public class CooperationActivity extends AppCompatActivity {
 
         WebView web_view = (WebView) findViewById(R.id.webViewMain);
 
-        this.browser = new Browser(web_view, this, null);
+        this.browser = new Browser(web_view, this, (ProgressBar)findViewById(R.id.mainProgressBar));
         this.browser.set_url(this.url);
         this.browser.load();
 

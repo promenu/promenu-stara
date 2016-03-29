@@ -10,8 +10,10 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -41,6 +43,10 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity
@@ -48,7 +54,11 @@ public class MainActivity extends AppCompatActivity
 
     private Browser browser;
 
+    private String html = "";
+
     private String url = "";
+
+    private boolean in_search_mode = false;
 
     private Restaurants restaurants;
 
@@ -83,110 +93,41 @@ public class MainActivity extends AppCompatActivity
 
         this.restaurants = new Restaurants(this);
 
-        //html += "<div class=\"restaurants\"><div class=\"search_box\"><form method=\"post\"><input type=\"text\" name=\"search_value\" class=\"search_value\" id=\"search_value\" value=\"\" placeholder=\"Vyhľadať mesto alebo reštauráciu\" data-placeholder=\"Vyhľadať mesto alebo reštauráciu\" autocomplete=\"off\" /><input type=\"submit\" name=\"search\" value=\"\" /></form></div></div>";
-
+        this.browser = new Browser((WebView)findViewById(R.id.webViewMain), this, (ProgressBar)findViewById(R.id.mainProgressBar));
 
         GPSTracker tracker = new GPSTracker(this);
 
         if (!tracker.canGetLocation()) {
-            //tracker.showSettingsAlert();
-
             MessageBox messageBox = new MessageBox(MainActivity.this, "Hľadaj podľa polohy", "Zapni GPS a hľadaj reštaurácie v okolí alebo pokračuj stlačením ok bez lokácie.");
             messageBox.ShowSettings();
 
+            this.url = "http://mobile.promenu.sk/api/restauracie2?mobile_id=" + this.mobile_id;
 
-            this.url = "http://mobile.promenu.sk/api/restauracie?mobile_id=" + this.mobile_id;
-
-            /*
-            this.browser.set_url(this.url);
-            this.browser.load();*/
         } else {
             this.latitude = tracker.getLatitude();
             this.longitude = tracker.getLongitude();
 
-            //MessageBox messageBox = new MessageBox(MainActivity.this, "Moja poloha", this.latitude + ", " + this.longitude);
-            //messageBox.Show();
-
-            this.url = "http://mobile.promenu.sk/api/restauracie/nearby?lat=" + this.latitude + "&lon=" + this.longitude + "&dis=20&mobile_id=" + this.mobile_id;
-
-            /*
-            this.browser.set_url(this.url);
-            this.browser.load();*/
+            this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + this.latitude + "&lon=" + this.longitude + "&dis=20&mobile_id=" + this.mobile_id;
         }
 
-        AsyncHttpClient client = new AsyncHttpClient();
-        client.get(this.url, new AsyncHttpResponseHandler() {
+        this.loadRestaurants("");
 
+        ImageView logo_button = (ImageView)findViewById(R.id.toolbarImageView);
+        logo_button.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onStart() {}
+            public boolean onTouch(View v, MotionEvent ev) {
+                if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    MainActivity.this.in_search_mode = false;
 
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                // called when response HTTP status is "200 OK"
+                    MainActivity.this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + MainActivity.this.latitude + "&lon=" + MainActivity.this.longitude + "&dis=20&mobile_id=" + MainActivity.this.mobile_id;
 
-                String html = "";
-                html += MainActivity.this.restaurants.getHeader();
-                html += "<div class=\"restaurants\"><div class=\"search_box\"><form method=\"post\"><input type=\"text\" name=\"search_value\" class=\"search_value\" id=\"search_value\" value=\"\" placeholder=\"Vyhľadať mesto alebo reštauráciu\" data-placeholder=\"Vyhľadať mesto alebo reštauráciu\" autocomplete=\"off\" /><input type=\"submit\" name=\"search\" value=\"\" /></form></div></div>";
+                    MainActivity.this.loadRestaurants("");
 
-                try {
-                    String str = new String(response, "UTF-8");
-
-                    JSONArray array = new JSONArray(str);
-
-                    //html += MainActivity.this.restaurants.getHeader();
-
-                    for(int i = 0; i < array.length(); i++){
-                        JSONObject jsonObject = array.getJSONObject(i);
-
-                        String restaurant_name = jsonObject.optString("nazov_prevadzky").toString();
-                        String slug = jsonObject.optString("slug").toString();
-                        String profile_photo_url = jsonObject.optString("profile_photo_url").toString();
-                        String address = jsonObject.optString("ulica").toString();
-                        //float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
-                        //float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
-                        float distance = Float.parseFloat(jsonObject.optString("distance").toString());
-                        float rating = Float.parseFloat(jsonObject.optString("rating").toString());
-
-                        JSONObject cityObject = jsonObject.optJSONObject("city");
-                        String city_name = cityObject.optString("name").toString();
-
-                        String distance_in_km = String.format("%.2f", (distance / 1000));
-                        String rating_string = String.format("%.1f", rating);
-
-                        html += "<div class=\"restaurant-box\" onclick=\"window.location='http://mobile.promenu.sk/restauracia/" + slug + "?mobile_id=" + MainActivity.this.mobile_id + "';\">" +
-                                "<div class=\"section group\"><div class=\"col span_1_of_5\"><img src=\"http://www.promenu.sk" + profile_photo_url + "\" />";
-
-                        html += "</div>" +
-                                "<div class=\"col span_4_of_5\">" +
-                                "<h2>" + restaurant_name + "</h2>" +
-                                "<div class=\"address\">\n" + distance_in_km + "km " + address + ", " + city_name + "</div><div class=\"rating-box\"><p>" + rating_string + "</p></div></div></div><div class=\"clear\"></div></div>";
-                    }
-
-                    html += MainActivity.this.restaurants.getFooter();
-
-                    Browser browser = new Browser((WebView)MainActivity.this.findViewById(R.id.webViewMain), MainActivity.this, (ProgressBar) MainActivity.this.findViewById(R.id.mainProgressBar));
-                    //browser.set_url(MainActivity.this.url);
-                    //browser.load();
-                    browser.setHTMLWithAssets(html);
-                    //browser.setHTMLWithAssets(html);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Chyba pri načítaní dát");
-                    messageBox.Show();
+                    return true;
                 }
+
+                return true;
             }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-
-                MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Chyba pri spojení zo serverom");
-                messageBox.Show();
-            }
-
-            @Override
-            public void onRetry(int retryNo) {}
         });
 
         //
@@ -237,6 +178,7 @@ public class MainActivity extends AppCompatActivity
                     Intent maps_intent = new Intent(MainActivity.this, MapsActivity.class);
                     maps_intent.putExtra("latitude", MainActivity.this.latitude);
                     maps_intent.putExtra("longitude", MainActivity.this.longitude);
+                    maps_intent.putExtra("mobile_id", MainActivity.this.mobile_id);
 
                     startActivity(maps_intent);
                 }
@@ -244,6 +186,134 @@ public class MainActivity extends AppCompatActivity
                 return true;
             }
         });
+    }
+
+    public void loadRestaurants(String search_value)
+    {
+        this.html = "";
+
+        if(search_value.length() > 0) {
+            this.in_search_mode = true;
+
+            this.url = "http://mobile.promenu.sk/api/restauracie2/search?search_value=" + search_value + "&lat=" + this.latitude + "&lon=" + this.longitude + "&dis=20&mobile_id=" + this.mobile_id;
+        } else {
+            this.in_search_mode = false;
+        }
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(this.url, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {}
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+
+                html += MainActivity.this.restaurants.getHeader();
+                html += "<div class=\"restaurants\"><div class=\"search_box\"><form method=\"post\" id=\"search_form\" onsubmit=\"return searchFunction();\"><input type=\"text\" name=\"search_value\" class=\"search_value\" id=\"search_value\" value=\"\" placeholder=\"Vyhľadať mesto alebo reštauráciu\" data-placeholder=\"Vyhľadať mesto alebo reštauráciu\" autocomplete=\"off\" /><input type=\"submit\" name=\"search\" value=\"\" /></form></div>";
+
+                if(MainActivity.this.in_search_mode == false) {
+                    html += "<h1>Obľúbené reštaurácie</h1>";
+                }
+
+                try {
+                    String str = new String(response, "UTF-8");
+
+                    JSONArray array = new JSONArray(str);
+
+                    int array_length = array.length();
+
+                    int j = 0;
+
+                    int favorites = 0;
+
+                    if(array_length > 0) {
+                        for (int i = 0; i < array_length; i++) {
+                            JSONObject jsonObject = array.getJSONObject(i);
+
+                            String restaurant_name = jsonObject.optString("nazov_prevadzky").toString();
+                            String slug = jsonObject.optString("slug").toString();
+                            String profile_photo_url = jsonObject.optString("profile_photo_url").toString();
+                            String address = jsonObject.optString("ulica").toString();
+                            //float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
+                            //float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
+                            float distance = Float.parseFloat(jsonObject.optString("distance").toString());
+                            float rating = Float.parseFloat(jsonObject.optString("rating").toString());
+                            String favorite = jsonObject.optString("is_favorite").toString();
+                            int is_favorite = (favorite.length() > 0 && Integer.parseInt(favorite) == 1) ? 1 : 0;
+
+                            if(is_favorite == 0) {
+                                j++;
+
+                                if(j == 1) {
+                                    if(favorites == 0 && MainActivity.this.in_search_mode == false) {
+                                        html += "<p class=\"not-found\">Nenašli sa žiadne reštaurácie</p>";
+                                    }
+
+                                    if(MainActivity.this.in_search_mode == false) {
+                                        html += "<h1>Reštaurácie v okolí</h1>";
+                                    } else {
+                                        html += "<h1>Nájdenné reštaurácie</h1>";
+                                    }
+                                }
+                            } else {
+                                favorites++;
+                            }
+
+                            JSONObject cityObject = jsonObject.optJSONObject("city");
+                            String city_name = cityObject.optString("name").toString();
+
+                            String distance_in_km = String.format("%.2f", (distance / 1000));
+                            String rating_string = String.format("%.1f", rating);
+
+                            html += "<div class=\"restaurant-box\" data-restaurant_name=\"" + restaurant_name + "\" data-slug=\"" + slug + "\" data-mobile_id=\"" + MainActivity.this.mobile_id + "\" data-latitude=\"" + MainActivity.this.latitude + "\" data-longitude=\"" + MainActivity.this.longitude + "\">" +
+                                    "<div class=\"section group\"><div class=\"col span_1_of_5\"><img src=\"http://www.promenu.sk" + profile_photo_url + "\" />";
+
+                            html += "</div>" +
+                                    "<div class=\"col span_4_of_5\">" +
+                                    "<h2>" + restaurant_name + "</h2>" +
+                                    "<div class=\"address\">\n" + distance_in_km + "km " + address + ", " + city_name + "</div><div class=\"rating-box\"><p>" + rating_string + "</p></div></div></div><div class=\"clear\"></div></div>";
+                        }
+                    } else {
+                        html += "<p class=\"not-found\">Nenašli sa žiadne reštaurácie</p>";
+                    }
+
+                    html += "</div>";
+
+                    html += MainActivity.this.restaurants.getFooter();
+
+                    browser.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            browser.setHTMLWithAssets(html);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Chyba pri načítaní dát");
+                    messageBox.Show();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+
+                MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Chyba pri spojení so serverom");
+                messageBox.Show();
+            }
+
+            @Override
+            public void onRetry(int retryNo) {}
+        });
+    }
+
+    public void onSearch(String search_value)
+    {
+        if(search_value.length() > 0) {
+            this.loadRestaurants(search_value);
+        }
     }
 
     @Override
@@ -296,21 +366,16 @@ public class MainActivity extends AppCompatActivity
             Intent blog_intent = new Intent(MainActivity.this, CooperationActivity.class);
 
             startActivity(blog_intent);
+        } else if (id == R.id.nav_facebook) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/ObedujSNami"));
+            startActivity(browserIntent);
+        } else if (id == R.id.nav_instagram) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/promenu.sk/"));
+            startActivity(browserIntent);
+        } else if (id == R.id.nav_googleplus) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://plus.google.com/u/0/+ProMenu/posts"));
+            startActivity(browserIntent);
         }
-
-        /*if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

@@ -48,7 +48,7 @@ public class MessageBox {
         dialog.setTitle(this.title);
         dialog.setMessage(this.message);
         dialog.setCancelable(false);
-        dialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+        dialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Whatever...

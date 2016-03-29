@@ -42,21 +42,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private double longitude = 0;
 
+    private String mobile_id = "";
+
     private String url = "http://mobile.promenu.sk/api/maps";
 
     private String JSON_Data = "";
+
+    private boolean is_located = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //Bundle bundle = getIntent().getExtras();
+        Bundle bundle = getIntent().getExtras();
+        this.mobile_id = bundle.getString("mobile_id");
         //this.latitude = bundle.getDouble("latitude");
         //this.longitude = bundle.getDouble("longitude");
 
@@ -194,8 +201,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
 
             public void onInfoWindowClick(Marker marker) {
-                Intent i = new Intent(MapsActivity.this, AboutActivity.class);
-                startActivity(i);
+                String restaurant_name = marker.getTitle();
+
+                String slug = "";
+
+                LatLng position = marker.getPosition();
+
+                String restaurant_latitude = String.valueOf(position.latitude);
+
+                String restaurant_longitude = String.valueOf(position.longitude);
+
+                Intent restaurant_intent = new Intent(MapsActivity.this, RestaurantActivity.class);
+                restaurant_intent.putExtra("restaurant_name", restaurant_name);
+                restaurant_intent.putExtra("slug", slug);
+                restaurant_intent.putExtra("mobile_id", mobile_id);
+                restaurant_intent.putExtra("latitude", latitude);
+                restaurant_intent.putExtra("longitude", longitude);
+                restaurant_intent.putExtra("restaurant_latitude", restaurant_latitude);
+                restaurant_intent.putExtra("restaurant_longitude", restaurant_longitude);
+
+                MapsActivity.this.startActivity(restaurant_intent);
             }
         });
 
@@ -205,15 +230,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
         @Override
         public void onMyLocationChange(Location location) {
-            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+            if (is_located == false) {
+                LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
 
-            //mMap.addMarker(new MarkerOptions().position(loc).title("Ja").snippet("Tu sa nachádzam")
-                    //.icon(BitmapDescriptorFactory.fromResource(R.drawable.my_marker)));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f));
+                //mMap.addMarker(new MarkerOptions().position(loc).title("Ja").snippet("Tu sa nachádzam")
+                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.my_marker)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f));
 
-            if(mMap != null){
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 16.0f));
+                if (mMap != null) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 16.0f));
+                }
+
+                is_located = true;
             }
         }
     };
