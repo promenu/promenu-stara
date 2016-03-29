@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity
 
                             String restaurant_name = jsonObject.optString("nazov_prevadzky").toString();
                             String slug = jsonObject.optString("slug").toString();
-                            String profile_photo_url = jsonObject.optString("profile_photo_url").toString();
+                            String profile_photo_url = jsonObject.optString("avatar_url").toString();
                             String address = jsonObject.optString("ulica").toString();
                             //float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
                             //float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity
                             String rating_string = String.format("%.1f", rating);
 
                             html += "<div class=\"restaurant-box\" data-restaurant_name=\"" + restaurant_name + "\" data-slug=\"" + slug + "\" data-mobile_id=\"" + MainActivity.this.mobile_id + "\" data-latitude=\"" + MainActivity.this.latitude + "\" data-longitude=\"" + MainActivity.this.longitude + "\">" +
-                                    "<div class=\"section group\"><div class=\"col span_1_of_5\"><img src=\"http://www.promenu.sk" + profile_photo_url + "\" />";
+                                    "<div class=\"section group\"><div class=\"col span_1_of_5\"><img src=\"" + profile_photo_url + "\" />";
 
                             html += "</div>" +
                                     "<div class=\"col span_4_of_5\">" +

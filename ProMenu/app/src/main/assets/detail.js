@@ -40,3 +40,27 @@ $(document).ready(function () {
 			}
     });
 });
+
+jQuery(document).ready(function() {
+				$(document).on('click', '#add_to_favorite', function() {
+					$.ajax( {
+						method: "POST",
+						url: "http://mobile.promenu.sk/restauracie/?add_to_favorite=1",
+						data: { restaurant_id: {$restaurant->restaurant_id|noescape}, mobile_id: '{@$mobile_id|noescape}' }
+					} ).done(function(html) {
+						$('#add_to_favorite').hide();
+						$('#remove_from_favorite').show();
+					} );
+				});
+
+				$(document).on('click', '#remove_from_favorite', function() {
+					$.ajax( {
+						method: "POST",
+						url: "http://mobile.promenu.sk/restauracie/?remove_from_favorite=1",
+						data: { restaurant_id: {$restaurant->restaurant_id|noescape}, mobile_id: '{@$mobile_id|noescape}' }
+					} ).done(function(html) {
+						$('#remove_from_favorite').hide();
+						$('#add_to_favorite').show();
+					} );
+				});
+			});
