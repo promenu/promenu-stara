@@ -78,8 +78,6 @@ public class Browser {
             this.browser.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         }
 
-        this.browser.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-
         this.browser.loadUrl(this.url);
 
         this.browser.setWebViewClient(new WebViewClient() {

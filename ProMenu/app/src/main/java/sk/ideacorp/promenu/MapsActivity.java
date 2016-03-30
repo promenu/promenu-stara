@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,6 +27,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.loopj.android.http.*;
 
@@ -37,6 +40,8 @@ import cz.msebera.android.httpclient.Header;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+
+    private String selected_restaurant_name = "";
 
     private double latitude = 0;
 
@@ -50,22 +55,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private boolean is_located = false;
 
+    private Map<String, String> slug_array = new HashMap<String, String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        Bundle bundle = getIntent().getExtras();
+        this.selected_restaurant_name = bundle.getString("restaurant_name");
+        this.mobile_id = bundle.getString("mobile_id");
+        this.latitude = (bundle.getString("latitude") != null) ? Double.parseDouble(bundle.getString("latitude")) : 0;
+        this.longitude = (bundle.getString("longitude") != null) ? Double.parseDouble(bundle.getString("longitude")) : 0;
 
+        if(selected_restaurant_name != null && selected_restaurant_name.length() > 0) {
+            TextView page_name = (TextView) findViewById(R.id.page_name);
+
+            String restaurant_name_2 = (selected_restaurant_name.length() > 30) ? selected_restaurant_name.substring(0, 30) + "..." : selected_restaurant_name;
+
+            page_name.setText(restaurant_name_2);
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        Bundle bundle = getIntent().getExtras();
-        this.mobile_id = bundle.getString("mobile_id");
-        //this.latitude = bundle.getDouble("latitude");
-        //this.longitude = bundle.getDouble("longitude");
 
         Toolbar about_toolbar = (Toolbar)findViewById(R.id.toolbar);
         about_toolbar.setOnTouchListener(new View.OnTouchListener() {
@@ -129,11 +143,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.animateCamera(CameraUpdateFactory.zoomTo(6.0f));
         }*/
 
-        LatLng slovakia = new LatLng(48.708746, 19.507936);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(slovakia));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(6.0f));
-        mMap.setMyLocationEnabled(true);
+        if(latitude > 0 && longitude > 0) {
+            LatLng restaurant = new LatLng(latitude, longitude);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(restaurant));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f));
+
+            is_located = true;
+        } else {
+            LatLng slovakia = new LatLng(48.708746, 19.507936);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(slovakia));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(6.0f));
+        }
+
         mMap.setOnMyLocationChangeListener(this.myLocationChangeListener);
+        mMap.setMyLocationEnabled(true);
 
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(MapsActivity.this.url, new AsyncHttpResponseHandler() {
@@ -156,6 +179,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     for(int i=0; i < array.length(); i++){
                         JSONObject jsonObject = array.getJSONObject(i);
 
+                        String slug = jsonObject.optString("slug").toString();
                         String restaurant_name = jsonObject.optString("nazov_prevadzky").toString();
                         float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
                         float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
@@ -166,15 +190,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         {
                             LatLng position = new LatLng(restaurant_latitude, restaurant_longitude);
 
+                            Marker marker;
+
                             if(distance > 0) {
                                 String distance_in_km = String.format("%.2f", (distance / 1000));
 
-                                mMap.addMarker(new MarkerOptions().position(position).title(restaurant_name).snippet(distance_in_km + "km  Rating: " + rating)
+                                marker = mMap.addMarker(new MarkerOptions().position(position).title(restaurant_name).snippet(distance_in_km + "km  Rating: " + rating)
                                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
                             } else {
-                                mMap.addMarker(new MarkerOptions().position(position).title(restaurant_name).snippet("Rating: " + rating)
+                                marker = mMap.addMarker(new MarkerOptions().position(position).title(restaurant_name).snippet("Rating: " + rating)
                                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
                             }
+
+                            if(selected_restaurant_name != null && selected_restaurant_name.indexOf(restaurant_name) >= 0) {
+                                marker.showInfoWindow();
+                            }
+
+                            slug_array.put(marker.getId(), slug);
                         }
                     }
 
@@ -203,7 +235,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onInfoWindowClick(Marker marker) {
                 String restaurant_name = marker.getTitle();
 
-                String slug = "";
+                String slug = slug_array.get(marker.getId());
+                slug = (slug != null) ? slug : "";
 
                 LatLng position = marker.getPosition();
 

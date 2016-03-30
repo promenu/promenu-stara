@@ -22,6 +22,7 @@ new(function(){});var e=k.$JssorEasing$={$EaseSwing:function(a){return-c.cos(a*c
 /*** Main ***/
 $(document).ready(function(){$(".mobile-wrapper").hide(),$(".day_selector A").click(function(){$(".day_selector A").removeClass("active"),$(this).addClass("active");var e=$(this).data("href");$(".menu_day_box").hide(),$(e).fadeIn()})}),$(window).load(function(){$(".mobile-wrapper").show()});
 
+/*
  //Communicate with Javascript Interface
 $(document).ready(function () {
     $('.restaurant-box').click(function() {
@@ -40,27 +41,128 @@ $(document).ready(function () {
 			}
     });
 });
+*/
 
-jQuery(document).ready(function() {
+jQuery(document).ready(function($) {
 				$(document).on('click', '#add_to_favorite', function() {
+				    var restaurant_id = $(this).data("id");
+
+				    var mobile_id = $(this).data("mobile_id");
+
 					$.ajax( {
 						method: "POST",
 						url: "http://mobile.promenu.sk/restauracie/?add_to_favorite=1",
-						data: { restaurant_id: {$restaurant->restaurant_id|noescape}, mobile_id: '{@$mobile_id|noescape}' }
+						data: { restaurant_id: restaurant_id, mobile_id: mobile_id }
 					} ).done(function(html) {
 						$('#add_to_favorite').hide();
 						$('#remove_from_favorite').show();
 					} );
+
+					$('#add_to_favorite').hide();
+                    $('#remove_from_favorite').show();
 				});
 
 				$(document).on('click', '#remove_from_favorite', function() {
+				    var restaurant_id = $(this).data("id");
+
+                    var mobile_id = $(this).data("mobile_id");
+
 					$.ajax( {
 						method: "POST",
 						url: "http://mobile.promenu.sk/restauracie/?remove_from_favorite=1",
-						data: { restaurant_id: {$restaurant->restaurant_id|noescape}, mobile_id: '{@$mobile_id|noescape}' }
+						data: { restaurant_id: restaurant_id, mobile_id: mobile_id }
 					} ).done(function(html) {
 						$('#remove_from_favorite').hide();
 						$('#add_to_favorite').show();
 					} );
+
+					$('#remove_from_favorite').hide();
+                    $('#add_to_favorite').show();
 				});
-			});
+
+			    $("#restaurant_map").click(function() {
+			        var restaurant_name = $(this).data("name");
+
+                    var slug = $(this).data("slug");
+
+                    var mobile_id = $(this).data("mobile_id");
+
+                    var latitude = $(this).data("latitude");
+
+                    var longitude = $(this).data("longitude");
+
+                    if(window.JSInterface){
+                			window.JSInterface.map_detail(restaurant_name, slug, mobile_id, latitude, longitude);
+                	}
+			    });
+
+                			    $("#food_list").click(function() {
+                			        var restaurant_name = $(this).data("name");
+
+                                    var slug = $(this).data("slug");
+
+                                    var mobile_id = $(this).data("mobile_id");
+
+                                    var latitude = $(this).data("latitude");
+
+                                    var longitude = $(this).data("longitude");
+
+                                    if(window.JSInterface){
+                                			window.JSInterface.food_list(restaurant_name, slug, mobile_id, latitude, longitude);
+                                	}
+                                });
+
+                        $('#jssor_1').width($(window).width() + 'px');
+
+                        var jssor_1_options = {
+                          $AutoPlay: false,
+                          $AutoPlaySteps: 3,
+                          $SlideDuration: 160,
+                          $SlideWidth: ($(window).width() / 3),
+                          $SlideSpacing: 3,
+                          $Cols: 3,
+                          $ArrowNavigatorOptions: {
+                            $Class: $JssorArrowNavigator$,
+                            $Steps: 3
+                          },
+                          $BulletNavigatorOptions: {
+                            $Class: $JssorBulletNavigator$,
+                            $SpacingX: 1,
+                            $SpacingY: 1
+                          }
+                        };
+
+                        var jssor_1_slider = new $JssorSlider$("jssor_1", jssor_1_options);
+
+            			function SliderClickEventHandler(slideIndex, event) {
+
+            			}
+
+            			jssor_1_slider.$On($JssorSlider$.$EVT_CLICK, SliderClickEventHandler);
+
+                        //responsive code begin
+                        //you can remove responsive code if you don't want the slider scales while window resizing
+                        function ScaleSlider() {
+                            var refSize = jssor_1_slider.$Elmt.parentNode.clientWidth;
+                            if (refSize) {
+                                refSize = Math.min(refSize, $(window).width());
+                                jssor_1_slider.$ScaleWidth(refSize);
+                            }
+                            else {
+                                window.setTimeout(ScaleSlider, 30);
+                            }
+                        }
+                        ScaleSlider();
+                        $(window).bind("load", ScaleSlider);
+                        $(window).bind("resize", ScaleSlider);
+                        $(window).bind("orientationchange", ScaleSlider);
+                        //responsive code end
+
+            			$('#jssor_1 A').fancybox({
+            				'transitionIn'	:	'elastic',
+            				'transitionOut'	:	'elastic',
+            				'speedIn'		:	600,
+            				'speedOut'		:	200,
+            				'overlayShow'	:	false
+            			});
+                    });

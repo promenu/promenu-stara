@@ -46,6 +46,7 @@ public class Restaurants {
         head += "<link href=\"fancybox.css\" rel=\"stylesheet\" type=\"text/css\">";
         head += "<link href=\"styles.css\" rel=\"stylesheet\" type=\"text/css\">";
         head += "<script src=\"detail.js\"></script>";
+        head += "<script src=\"jquery.fancybox.js\"></script>";
 
         head += "</head><body><div class=\"mobile-wrapper\">";
 

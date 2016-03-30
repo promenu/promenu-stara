@@ -63,4 +63,34 @@ public class JavaScriptInterface {
         MainActivity main_activity = (MainActivity)this.activity;
         main_activity.onSearch(search_value);
     }
+
+    @JavascriptInterface
+    public void food_list(String restaurant_name, String slug, String mobile_id, String latitude, String longitude)
+    {
+        Intent foodlist_intent = new Intent(this.activity, FoodlistActivity.class);
+        foodlist_intent.putExtra("restaurant_name", restaurant_name);
+        foodlist_intent.putExtra("slug", slug);
+        foodlist_intent.putExtra("mobile_id", mobile_id);
+        foodlist_intent.putExtra("latitude", latitude);
+        foodlist_intent.putExtra("longitude", longitude);
+        foodlist_intent.putExtra("restaurant_latitude", "");
+        foodlist_intent.putExtra("restaurant_longitude", "");
+
+        this.activity.startActivity(foodlist_intent);
+    }
+
+    @JavascriptInterface
+    public void map_detail(String restaurant_name, String slug, String mobile_id, String latitude, String longitude)
+    {
+        Intent maps_intent = new Intent(this.activity, MapsActivity.class);
+        maps_intent.putExtra("restaurant_name", restaurant_name);
+        maps_intent.putExtra("slug", slug);
+        maps_intent.putExtra("mobile_id", mobile_id);
+        maps_intent.putExtra("latitude", latitude);
+        maps_intent.putExtra("longitude", longitude);
+        maps_intent.putExtra("restaurant_latitude", "");
+        maps_intent.putExtra("restaurant_longitude", "");
+
+        this.activity.startActivity(maps_intent);
+    }
 }
