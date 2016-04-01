@@ -93,4 +93,25 @@ public class JavaScriptInterface {
 
         this.activity.startActivity(maps_intent);
     }
+
+    @JavascriptInterface
+    public void enable_gps()
+    {
+        MainActivity main_activity = (MainActivity)this.activity;
+        main_activity.enableGPS();
+    }
+
+    @JavascriptInterface
+    public void add_favorite(int id, String mobile_id)
+    {
+        RestaurantActivity restaurant_activity = (RestaurantActivity)this.activity;
+        restaurant_activity.add_favorite(id, mobile_id);
+    }
+
+    @JavascriptInterface
+    public void remove_favorite(int id, String mobile_id)
+    {
+        RestaurantActivity restaurant_activity = (RestaurantActivity)this.activity;
+        restaurant_activity.remove_favorite(id, mobile_id);
+    }
 }

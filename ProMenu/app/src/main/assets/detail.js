@@ -49,14 +49,18 @@ jQuery(document).ready(function($) {
 
 				    var mobile_id = $(this).data("mobile_id");
 
-					$.ajax( {
+				    if(window.JSInterface){
+                        window.JSInterface.add_favorite(restaurant_id, mobile_id);
+                    }
+
+					/*$.ajax( {
 						method: "POST",
 						url: "http://mobile.promenu.sk/restauracie/?add_to_favorite=1",
 						data: { restaurant_id: restaurant_id, mobile_id: mobile_id }
 					} ).done(function(html) {
 						$('#add_to_favorite').hide();
 						$('#remove_from_favorite').show();
-					} );
+					} );*/
 
 					$('#add_to_favorite').hide();
                     $('#remove_from_favorite').show();
@@ -67,14 +71,18 @@ jQuery(document).ready(function($) {
 
                     var mobile_id = $(this).data("mobile_id");
 
-					$.ajax( {
+                    if(window.JSInterface){
+                        window.JSInterface.remove_favorite(restaurant_id, mobile_id);
+                    }
+
+					/*$.ajax( {
 						method: "POST",
 						url: "http://mobile.promenu.sk/restauracie/?remove_from_favorite=1",
 						data: { restaurant_id: restaurant_id, mobile_id: mobile_id }
 					} ).done(function(html) {
 						$('#remove_from_favorite').hide();
 						$('#add_to_favorite').show();
-					} );
+					} );*/
 
 					$('#remove_from_favorite').hide();
                     $('#add_to_favorite').show();

@@ -54,6 +54,8 @@ public class MainActivity extends AppCompatActivity
 
     private Browser browser;
 
+    private ProgressBar progress_bar;
+
     private String html = "";
 
     private String url = "";
@@ -93,24 +95,11 @@ public class MainActivity extends AppCompatActivity
 
         this.restaurants = new Restaurants(this);
 
+        this.progress_bar = (ProgressBar)findViewById(R.id.mainProgressBar);
+
         this.browser = new Browser((WebView)findViewById(R.id.webViewMain), this, (ProgressBar)findViewById(R.id.mainProgressBar));
 
-        GPSTracker tracker = new GPSTracker(this);
-
-        if (!tracker.canGetLocation()) {
-            MessageBox messageBox = new MessageBox(MainActivity.this, "Hľadaj podľa polohy", "Zapni GPS a hľadaj reštaurácie v okolí alebo pokračuj stlačením ok bez lokácie.");
-            messageBox.ShowSettings();
-
-            this.url = "http://mobile.promenu.sk/api/restauracie2?mobile_id=" + this.mobile_id;
-
-        } else {
-            this.latitude = tracker.getLatitude();
-            this.longitude = tracker.getLongitude();
-
-            this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + this.latitude + "&lon=" + this.longitude + "&dis=20&mobile_id=" + this.mobile_id;
-        }
-
-        this.loadRestaurants("");
+        //this.enableGPS();
 
         ImageView logo_button = (ImageView)findViewById(R.id.toolbarImageView);
         logo_button.setOnTouchListener(new View.OnTouchListener() {
@@ -119,9 +108,9 @@ public class MainActivity extends AppCompatActivity
                 if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
                     MainActivity.this.in_search_mode = false;
 
-                    MainActivity.this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + MainActivity.this.latitude + "&lon=" + MainActivity.this.longitude + "&dis=20&mobile_id=" + MainActivity.this.mobile_id;
+                    //MainActivity.this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + MainActivity.this.latitude + "&lon=" + MainActivity.this.longitude + "&dis=50&mobile_id=" + MainActivity.this.mobile_id;
 
-                    MainActivity.this.loadRestaurants("");
+                    MainActivity.this.enableGPS();
 
                     return true;
                 }
@@ -188,14 +177,43 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    public void enableGPS() {
+
+        GPSTracker tracker = new GPSTracker(this);
+
+        if (!tracker.canGetLocation()) {
+            MessageBox messageBox = new MessageBox(MainActivity.this, "Hľadaj podľa polohy", "Zapni GPS a hľadaj reštaurácie v okolí alebo pokračuj stlačením ok bez lokácie.");
+            messageBox.ShowSettings();
+
+            this.url = "http://mobile.promenu.sk/api/restauracie2?mobile_id=" + this.mobile_id;
+
+        } else {
+            this.latitude = tracker.getLatitude();
+            this.longitude = tracker.getLongitude();
+
+            this.url = "http://mobile.promenu.sk/api/restauracie2/nearby?lat=" + this.latitude + "&lon=" + this.longitude + "&dis=50&mobile_id=" + this.mobile_id;
+        }
+
+        this.loadRestaurants("");
+    }
+
     public void loadRestaurants(String search_value)
     {
+        if(browser.isNetworkAvailable() == false) {
+
+            browser.setHTMLWithAssets("<p>&nbsp;</p><p style='text-align: center; color: #1395a0;'></p><p style='text-align: center; font-size: 24px; color: #1395a0; padding-top: 25px;'>Už ti škŕka v bruchu?<br />Rýchlo zapni internet a my ti naservírujeme reštaurácie v okolí.</p>");
+
+            return;
+        }
+
         this.html = "";
+
+        //progress_bar.setVisibility(View.VISIBLE);
 
         if(search_value.length() > 0) {
             this.in_search_mode = true;
 
-            this.url = "http://mobile.promenu.sk/api/restauracie2/search?search_value=" + search_value + "&lat=" + this.latitude + "&lon=" + this.longitude + "&dis=20&mobile_id=" + this.mobile_id;
+            this.url = "http://mobile.promenu.sk/api/restauracie2/search?search_value=" + search_value + "&lat=" + this.latitude + "&lon=" + this.longitude + "&dis=50&mobile_id=" + this.mobile_id;
         } else {
             this.in_search_mode = false;
         }
@@ -204,7 +222,8 @@ public class MainActivity extends AppCompatActivity
         client.get(this.url, new AsyncHttpResponseHandler() {
 
             @Override
-            public void onStart() {}
+            public void onStart() {
+            }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] response) {
@@ -213,7 +232,7 @@ public class MainActivity extends AppCompatActivity
                 html += MainActivity.this.restaurants.getHeader();
                 html += "<div class=\"restaurants\"><div class=\"search_box\"><form method=\"post\" id=\"search_form\" onsubmit=\"return searchFunction();\"><input type=\"text\" name=\"search_value\" class=\"search_value\" id=\"search_value\" value=\"\" placeholder=\"Vyhľadať mesto alebo reštauráciu\" data-placeholder=\"Vyhľadať mesto alebo reštauráciu\" autocomplete=\"off\" /><input type=\"submit\" name=\"search\" value=\"\" /></form></div>";
 
-                if(MainActivity.this.in_search_mode == false) {
+                if (MainActivity.this.in_search_mode == false) {
                     html += "<h1>Obľúbené reštaurácie</h1>";
                 }
 
@@ -228,7 +247,9 @@ public class MainActivity extends AppCompatActivity
 
                     int favorites = 0;
 
-                    if(array_length > 0) {
+                    boolean not_restaurants = true;
+
+                    if (array_length > 0) {
                         for (int i = 0; i < array_length; i++) {
                             JSONObject jsonObject = array.getJSONObject(i);
 
@@ -236,25 +257,27 @@ public class MainActivity extends AppCompatActivity
                             String slug = jsonObject.optString("slug").toString();
                             String profile_photo_url = jsonObject.optString("avatar_url").toString();
                             String address = jsonObject.optString("ulica").toString();
-                            //float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
-                            //float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
+                            float restaurant_latitude = Float.parseFloat(jsonObject.optString("lat").toString());
+                            float restaurant_longitude = Float.parseFloat(jsonObject.optString("lon").toString());
                             float distance = Float.parseFloat(jsonObject.optString("distance").toString());
                             float rating = Float.parseFloat(jsonObject.optString("rating").toString());
                             String favorite = jsonObject.optString("is_favorite").toString();
                             int is_favorite = (favorite.length() > 0 && Integer.parseInt(favorite) == 1) ? 1 : 0;
 
-                            if(is_favorite == 0) {
+                            if (is_favorite == 0) {
                                 j++;
 
-                                if(j == 1) {
-                                    if(favorites == 0 && MainActivity.this.in_search_mode == false) {
+                                not_restaurants = false;
+
+                                if (j == 1) {
+                                    if (favorites == 0 && MainActivity.this.in_search_mode == false) {
                                         html += "<p class=\"not-found\">Nenašli sa žiadne reštaurácie</p>";
                                     }
 
-                                    if(MainActivity.this.in_search_mode == false) {
-                                        html += "<h1>Reštaurácie v okolí</h1>";
+                                    if (MainActivity.this.in_search_mode == false) {
+                                        html += "<h1 onclick=\"enable_gps();\">Reštaurácie v okolí</h1>";
                                     } else {
-                                        html += "<h1>Nájdenné reštaurácie</h1>";
+                                        html += "<h1>Nájdené reštaurácie</h1>";
                                     }
                                 }
                             } else {
@@ -270,13 +293,28 @@ public class MainActivity extends AppCompatActivity
                             html += "<div class=\"restaurant-box\" data-restaurant_name=\"" + restaurant_name + "\" data-slug=\"" + slug + "\" data-mobile_id=\"" + MainActivity.this.mobile_id + "\" data-latitude=\"" + MainActivity.this.latitude + "\" data-longitude=\"" + MainActivity.this.longitude + "\">" +
                                     "<div class=\"section group\"><div class=\"col span_1_of_5\"><img src=\"" + profile_photo_url + "\" />";
 
-                            html += "</div>" +
-                                    "<div class=\"col span_4_of_5\">" +
-                                    "<h2>" + restaurant_name + "</h2>" +
-                                    "<div class=\"address\">\n" + distance_in_km + "km " + address + ", " + city_name + "</div><div class=\"rating-box\"><p>" + rating_string + "</p></div></div></div><div class=\"clear\"></div></div>";
+                            if (distance > 0 && latitude > 0 && longitude > 0 && restaurant_latitude > 0 && restaurant_longitude > 0) {
+                                html += "</div>" +
+                                        "<div class=\"col span_4_of_5\">" +
+                                        "<h2>" + restaurant_name + "</h2>" +
+                                        "<div class=\"address\">\n" + distance_in_km + "km " + address + ", " + city_name + "</div><div class=\"rating-box\"><p>" + rating_string + "</p></div></div></div><div class=\"clear\"></div></div>";
+                            } else {
+                                html += "</div>" +
+                                        "<div class=\"col span_4_of_5\">" +
+                                        "<h2>" + restaurant_name + "</h2>" +
+                                        "<div class=\"address\">\n" + address + ", " + city_name + "</div><div class=\"rating-box\"><p>" + rating_string + "</p></div></div></div><div class=\"clear\"></div></div>";
+                            }
+                        }
+
+                        if(not_restaurants == true) {
+                            html += "<h1 onclick=\"enable_gps();\">Reštaurácie v okolí</h1>";
                         }
                     } else {
                         html += "<p class=\"not-found\">Nenašli sa žiadne reštaurácie</p>";
+
+                        if (MainActivity.this.in_search_mode == false) {
+                            html += "<h1 onClick=\"enable_gps();\">Reštaurácie v okolí</h1>";
+                        }
                     }
 
                     html += "</div>";
@@ -287,6 +325,8 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void run() {
                             browser.setHTMLWithAssets(html);
+
+                            //progress_bar.setVisibility(View.GONE);
                         }
                     });
                 } catch (Exception e) {
@@ -294,6 +334,8 @@ public class MainActivity extends AppCompatActivity
 
                     MessageBox messageBox = new MessageBox(MainActivity.this, "Chyba", "Chyba pri načítaní dát");
                     messageBox.Show();
+
+                    progress_bar.setVisibility(View.GONE);
                 }
             }
 
@@ -305,7 +347,8 @@ public class MainActivity extends AppCompatActivity
             }
 
             @Override
-            public void onRetry(int retryNo) {}
+            public void onRetry(int retryNo) {
+            }
         });
     }
 
@@ -346,6 +389,20 @@ public class MainActivity extends AppCompatActivity
         }*/
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /*@Override
+    public void onResume() {
+        super.onResume();
+
+        this.enableGPS();
+    }*/
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        this.enableGPS();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")

@@ -107,6 +107,7 @@ public class RestaurantActivity extends AppCompatActivity {
                     String str = new String(response, "UTF-8");
 
                     JSONObject jsonObject = new JSONObject(str);
+                    String id = jsonObject.optString("id").toString();
                     String o_nas = jsonObject.optString("o_nas").toString();
                     String is_favorite = jsonObject.optString("is_favorite").toString();
                     String actual_day = jsonObject.optString("actual_day").toString();
@@ -184,11 +185,11 @@ public class RestaurantActivity extends AppCompatActivity {
                     html += "<div class=\"favourite\">";
 
                     if(i_is_favorite == 1) {
-                        html += "<a href=\"javascript:void(0);\" id=\"add_to_favorite\" style=\"display: none;\">Pridať do obľúbených</a>";
-                        html += "<a href=\"javascript:void(0);\" id=\"remove_from_favorite\">Odobrať z obľúbených</a>";
+                        html += "<a href=\"javascript:void(0);\" id=\"add_to_favorite\" style=\"display: none;\" data-id=\"" + id + "\" data-mobile_id=\"" + mobile_id + "\">Pridať do obľúbených</a>";
+                        html += "<a href=\"javascript:void(0);\" id=\"remove_from_favorite\" data-id=\"" + id + "\" data-mobile_id=\"" + mobile_id + "\">Odobrať z obľúbených</a>";
                     } else {
-                        html += "<a href=\"javascript:void(0);\" id=\"add_to_favorite\">Pridať do obľúbených</a>";
-                        html += "<a href=\"javascript:void(0);\" id=\"remove_from_favorite\" style=\"display: none;\">Odobrať z obľúbených</a>";
+                        html += "<a href=\"javascript:void(0);\" id=\"add_to_favorite\" data-id=\"" + id + "\" data-mobile_id=\"" + mobile_id + "\">Pridať do obľúbených</a>";
+                        html += "<a href=\"javascript:void(0);\" id=\"remove_from_favorite\" style=\"display: none;\" data-id=\"" + id + "\" data-mobile_id=\"" + mobile_id + "\">Odobrať z obľúbených</a>";
                     }
 
                     html += "</div>";
@@ -271,7 +272,7 @@ public class RestaurantActivity extends AppCompatActivity {
 
                     html += "</div><div class=\"col span_1_of_2\">";
 
-                    html += "<a href=\"javascript:void(0);\" id=\"restaurant_map\" data-name=\"" + restaurant_name + "\" data-slug=\"" + slug + "\" data-latitude=\"" + restaurant_latitude + "\" data-longitude=\"" + restaurant_longitude + "\" data-mobile_id=\"" + mobile_id + "\"><img src=\"http://maps.google.com/maps/api/staticmap?center=" + latitude + "," + longitude + "&zoom=16&size=200x200&maptype=roadmap&sensor=false&language=&markers=color:red|label:none|" + latitude + "," + longitude + "\" width=\"200\" height=\"200\" /></a>";
+                    html += "<a href=\"javascript:void(0);\" id=\"restaurant_map\" data-name=\"" + restaurant_name + "\" data-slug=\"" + slug + "\" data-latitude=\"" + restaurant_latitude + "\" data-longitude=\"" + restaurant_longitude + "\" data-mobile_id=\"" + mobile_id + "\"><img src=\"http://maps.google.com/maps/api/staticmap?center=" + restaurant_latitude + "," + restaurant_longitude + "&zoom=16&size=200x200&maptype=roadmap&sensor=false&language=&markers=color:red|label:none|" + restaurant_latitude + "," + restaurant_longitude + "\" width=\"200\" height=\"200\" /></a>";
 
                     html +="</div></div></div>";
 
@@ -307,6 +308,74 @@ public class RestaurantActivity extends AppCompatActivity {
 
                     MessageBox messageBox = new MessageBox(RestaurantActivity.this, "Chyba", "Chyba pri načítaní dát");
                     messageBox.Show();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+
+                MessageBox messageBox = new MessageBox(RestaurantActivity.this, "Chyba", "Chyba pri spojení so serverom");
+                messageBox.Show();
+            }
+
+            @Override
+            public void onRetry(int retryNo) {}
+        });
+    }
+
+    public void add_favorite(int restaurant_id, String mobile_id)
+    {
+        String url = "http://mobile.promenu.sk/restauracie/?add_to_favorite=1&restaurant_id=" + restaurant_id + "&mobile_id=" + this.mobile_id;
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(url, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {}
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+
+                try {
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+
+                MessageBox messageBox = new MessageBox(RestaurantActivity.this, "Chyba", "Chyba pri spojení so serverom");
+                messageBox.Show();
+            }
+
+            @Override
+            public void onRetry(int retryNo) {}
+        });
+    }
+
+    public void remove_favorite(int restaurant_id, String mobile_id)
+    {
+        String url = "http://mobile.promenu.sk/restauracie/?remove_from_favorite=1&restaurant_id=" + restaurant_id + "&mobile_id=" + this.mobile_id;
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(url, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {}
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+
+                try {
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 

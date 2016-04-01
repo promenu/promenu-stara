@@ -25,6 +25,13 @@ var searchFunction = function() {
     return false;
 };*/
 
+function enable_gps() {
+
+    if(window.JSInterface){
+        window.JSInterface.enable_gps();
+    }
+}
+
 function searchFunction() {
 
     var search_value = document.getElementById("search_value").value;
