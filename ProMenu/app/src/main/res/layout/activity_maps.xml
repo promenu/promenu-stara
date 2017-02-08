@@ -5,7 +5,7 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="sk.ideacorp.promenu.MapsActivity">
+    tools:context="sk.maras.promenu.MapsActivity">
 
     <android.support.design.widget.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"

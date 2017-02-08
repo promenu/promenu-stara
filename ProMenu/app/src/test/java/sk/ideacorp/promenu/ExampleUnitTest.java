@@ -1,4 +1,4 @@
-package sk.ideacorp.promenu;
+package sk.maras.promenu;
 
 import org.junit.Test;
 
